@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Auditoria</title>
+</head>
+<body>
+
+<div th:fragment="content">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-shield-check me-2 text-primary"></i>Auditoria
+        </h2>
+        <span class="badge bg-secondary">Somente leitura</span>
+    </div>
+
+    <div class="alert alert-danger" th:if="${erro}" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${erro}"></span>
+    </div>
+
+    <!-- Filtros -->
+    <form th:action="@{/auditoria}" method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-md-2">
+            <label for="entidadeTipo" class="form-label small mb-0">Entidade</label>
+            <select id="entidadeTipo" name="entidadeTipo" class="form-select form-select-sm">
+                <option value="">Todas</option>
+                <option value="PEDIDO" th:selected="${filtroEntidadeTipo == 'PEDIDO'}">Pedido</option>
+                <option value="CLIENTE" th:selected="${filtroEntidadeTipo == 'CLIENTE'}">Cliente</option>
+                <option value="USUARIO" th:selected="${filtroEntidadeTipo == 'USUARIO'}">Usuário</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="entidadeId" class="form-label small mb-0">Identificador</label>
+            <input type="text" id="entidadeId" name="entidadeId" class="form-control form-control-sm" th:value="${filtroEntidadeId}"/>
+        </div>
+        <div class="col-md-2">
+            <label for="usuario" class="form-label small mb-0">Usuário</label>
+            <input type="text" id="usuario" name="usuario" class="form-control form-control-sm" th:value="${filtroUsuario}"/>
+        </div>
+        <div class="col-md-3">
+            <label for="operacao" class="form-label small mb-0">Operação</label>
+            <select id="operacao" name="operacao" class="form-select form-select-sm">
+                <option value="">Todas</option>
+                <option th:each="o : ${operacoes}" th:value="${o.name()}" th:text="${o.descricao}"
+                        th:selected="${o.name() == filtroOperacao}"></option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-top mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Data/hora</th>
+                        <th>Usuário</th>
+                        <th>Operação</th>
+                        <th>Entidade</th>
+                        <th>Campos alterados (anterior → novo)</th>
+                        <th>Justificativa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(eventos)}">
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>Nenhum registro de auditoria encontrado.
+                        </td>
+                    </tr>
+                    <tr th:each="e : ${eventos}">
+                        <td class="ps-3 text-nowrap" th:text="${@fmt.dataHora(e.dataHora)}"></td>
+                        <td class="text-nowrap">
+                            <span th:text="${e.usuario}"></span>
+                            <span class="badge bg-light text-dark" th:text="${e.perfil}"></span>
+                        </td>
+                        <td th:text="${e.operacao != null} ? ${e.operacao.descricao} : '—'"></td>
+                        <td>
+                            <span th:text="${e.entidadeTipo}"></span><br/>
+                            <small class="text-muted" th:text="${e.entidadeId}"></small>
+                        </td>
+                        <td>
+                            <div th:each="c : ${e.alteracoes}" class="small mb-1">
+                                <strong th:text="${c.campo}"></strong>:
+                                <span class="text-danger" th:text="${c.valorAnterior != null} ? ${c.valorAnterior} : '(vazio)'"></span>
+                                <i class="bi bi-arrow-right"></i>
+                                <span class="text-success" th:text="${c.valorNovo != null} ? ${c.valorNovo} : '(vazio)'"></span>
+                            </div>
+                        </td>
+                        <td th:text="${e.justificativa}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-muted small">
+            Exibindo até <span th:text="${limite}"></span> registros mais recentes. Os registros não podem ser alterados nem excluídos.
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

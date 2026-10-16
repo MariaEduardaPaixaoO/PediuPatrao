@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Produtos</title>
+</head>
+<body>
+
+<div th:fragment="content">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-boxes me-2 text-primary"></i>Produtos
+        </h2>
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#formularioProduto"
+                th:if="${podeGerenciarProdutos}">
+            <i class="bi bi-plus-lg me-1"></i> Novo Produto
+        </button>
+    </div>
+
+    <div id="produtos-mensagem" class="alert d-none" role="alert"></div>
+
+    <!-- Formulário de cadastro (envia JSON para a API com token CSRF) -->
+    <div class="collapse mb-3" id="formularioProduto" th:if="${podeGerenciarProdutos}">
+        <div class="card card-body">
+            <form id="produtoForm">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="nome" class="form-label">Nome do Produto</label>
+                        <input type="text" id="nome" class="form-control" placeholder="Nome do Produto" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tipo" class="form-label">Tipo do Produto</label>
+                        <select id="tipo" class="form-select" required>
+                            <option value="" disabled selected>Selecione o Tipo</option>
+                            <option value="Pizza">Pizza</option>
+                            <option value="Lanche">Lanche</option>
+                            <option value="Bebida">Bebida</option>
+                            <option value="Porção">Porção</option>
+                            <option value="Adicional">Adicional</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="preco" class="form-label">Preço (R$)</label>
+                        <input type="number" id="preco" class="form-control" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="form-check">
+                            <input type="checkbox" id="ativo" class="form-check-input" checked>
+                            <label for="ativo" class="form-check-label">Ativo</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-4">Nome</th>
+                        <th>Tipo</th>
+                        <th class="text-end">Preço</th>
+                        <th>Ativo</th>
+                        <th class="text-end pe-4" th:if="${podeGerenciarProdutos}">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(produtos)}">
+                        <td colspan="5" class="text-center text-muted py-5">Nenhum produto cadastrado.</td>
+                    </tr>
+                    <tr th:each="produto : ${produtos}">
+                        <td class="ps-4" th:text="${produto.nome}"></td>
+                        <td th:text="${produto.tipo}"></td>
+                        <td class="text-end" th:text="${produto.preco != null} ? ('R$ ' + ${#numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}) : '—'"></td>
+                        <td th:text="${produto.ativo == null or produto.ativo} ? 'Sim' : 'Não'"></td>
+                        <td class="text-end pe-4" th:if="${podeGerenciarProdutos}">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-excluir-produto"
+                                    th:attr="data-id=${produto.id}">
+                                <i class="bi bi-trash-fill"></i> Excluir
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const caixa = document.getElementById('produtos-mensagem');
+            function mostrar(msg, tipo) {
+                caixa.className = 'alert alert-' + tipo;
+                caixa.textContent = msg;
+            }
+            async function erroDe(response, padrao) {
+                try { return (await response.json()).mensagem || padrao; }
+                catch (e) { return response.status === 403 ? 'Você não tem permissão para esta operação.' : padrao; }
+            }
+
+            const form = document.getElementById('produtoForm');
+            if (form) {
+                form.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    const resposta = await fetch('/api/produtos', {
+                        method: 'POST',
+                        headers: csrfHeaders({ 'Content-Type': 'application/json' }),
+                        body: JSON.stringify({
+                            nome: document.getElementById('nome').value,
+                            tipo: document.getElementById('tipo').value,
+                            preco: parseFloat(document.getElementById('preco').value),
+                            ativo: document.getElementById('ativo').checked
+                        })
+                    });
+                    if (resposta.ok) { window.location.reload(); }
+                    else { mostrar(await erroDe(resposta, 'Erro ao salvar o produto.'), 'danger'); }
+                });
+            }
+
+            document.querySelectorAll('.btn-excluir-produto').forEach(botao => {
+                botao.addEventListener('click', async () => {
+                    if (!confirm('Tem certeza que deseja excluir este produto?')) { return; }
+                    const resposta = await fetch('/api/produtos/' + encodeURIComponent(botao.dataset.id), {
+                        method: 'DELETE',
+                        headers: csrfHeaders()
+                    });
+                    if (resposta.ok) { window.location.reload(); }
+                    else { mostrar(await erroDe(resposta, 'Erro ao excluir o produto.'), 'danger'); }
+                });
+            });
+        })();
+    </script>
+
+</div>
+
+</body>
+</html>
