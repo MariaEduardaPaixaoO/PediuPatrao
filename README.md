@@ -2,7 +2,11 @@
 
 Sistema de pedidos de uma pizzaria, feito em Spring Boot com MongoDB e Thymeleaf. Este repositório é a minha entrega da Atividade Prática M1 – Parte 2, que pedia para evoluir o projeto original com controle de acesso por perfil, um fluxo de estados para os pedidos, desconto e cancelamento restritos ao gerente e uma auditoria gravada no banco.
 
+**Vídeo e docs do Dashboard Administrativo:**
+
 **Dashboard Administrativo:** [vídeo da apresentação](https://drive.google.com/file/d/1VM_bzstASb4FyYWvf6m0ndD-8ev8XFum/view?usp=sharing) · [documentação](docs/dashboard.md)
+
+
 
 ## O que precisa para rodar
 
