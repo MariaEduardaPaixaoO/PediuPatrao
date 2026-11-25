@@ -46,6 +46,7 @@ public class AtributosGlobaisAdvice {
         model.addAttribute("ehGerente", gerente);
         model.addAttribute("ehAtendente", atendente);
         model.addAttribute("podeVerAuditoria", admin || gerente);
+        model.addAttribute("podeVerDashboard", admin || gerente);
         model.addAttribute("podeVerClientes", gerente || atendente);
         model.addAttribute("podeEditarClientes", atendente);
         model.addAttribute("podeExcluirClientes", gerente);

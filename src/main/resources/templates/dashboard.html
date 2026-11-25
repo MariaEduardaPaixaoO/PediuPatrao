@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard Administrativo</title>
+</head>
+<body>
+
+<!-- Os dados são carregados por /js/dashboard.js a partir de /api/dashboard -->
+<div th:fragment="content" id="dashboard" class="dashboard pb-5"
+     th:data-api="@{/api/dashboard}" th:data-login="@{/login}"
+     th:data-hoje="${hoje}" th:data-maximo-dias="${maximoDias}">
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 dash-acento"></i>Dashboard Administrativo</h2>
+            <p class="text-muted mb-0 small">Desempenho de vendas e situação dos pedidos do Pediu Patrão</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small text-muted" id="dashAtualizadoEm" aria-live="polite">Carregando…</span>
+            <div class="form-check form-switch mb-0 small">
+                <input class="form-check-input" type="checkbox" role="switch" id="dashAutoAtualizar">
+                <label class="form-check-label" for="dashAutoAtualizar">Atualizar a cada 5 min</label>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-dark" id="dashAtualizar">
+                <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Atualizar
+            </button>
+        </div>
+    </div>
+
+    <!-- RF05 -->
+    <section class="card shadow-sm mb-3" aria-labelledby="dashFiltrosTitulo">
+        <div class="card-body py-3">
+            <h3 class="visually-hidden" id="dashFiltrosTitulo">Filtros de período</h3>
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-xl-auto">
+                    <span class="form-label small d-block">Período</span>
+                    <div class="btn-group flex-wrap" role="group" aria-label="Períodos predefinidos">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="HOJE"
+                                aria-pressed="false">Hoje</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="ULTIMOS_7_DIAS"
+                                aria-pressed="false">Últimos 7 dias</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="ULTIMOS_30_DIAS"
+                                aria-pressed="true">Últimos 30 dias</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-periodo="MES_ATUAL"
+                                aria-pressed="false">Mês atual</button>
+                    </div>
+                </div>
+                <form class="col-12 col-xl d-flex flex-wrap align-items-end gap-2" id="dashFormDatas" novalidate>
+                    <div>
+                        <label for="dashInicio" class="form-label small d-block">Data inicial</label>
+                        <input type="date" id="dashInicio" class="form-control form-control-sm" th:max="${hoje}"
+                               required>
+                    </div>
+                    <div>
+                        <label for="dashFim" class="form-label small d-block">Data final</label>
+                        <input type="date" id="dashFim" class="form-control form-control-sm" th:max="${hoje}"
+                               required>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-dark">
+                        <i class="bi bi-funnel me-1" aria-hidden="true"></i>Aplicar
+                    </button>
+                </form>
+            </div>
+            <div class="small text-danger mt-2" id="dashErroDatas" role="alert"></div>
+            <div class="small text-muted mt-2" id="dashPeriodoTexto" aria-live="polite"></div>
+        </div>
+    </section>
+
+    <div class="alert alert-danger d-none" id="dashErroGeral" role="alert"></div>
+
+    <!-- RF01 -->
+    <section class="row g-3 mb-3" aria-label="Indicadores gerais de vendas" id="dashCards">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card shadow-sm h-100 dash-kpi dash-kpi-vendas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small text-uppercase fw-semibold">Total de vendas</span>
+                        <i class="bi bi-cash-coin fs-4" aria-hidden="true"></i>
+                    </div>
+                    <div class="fs-3 fw-bold dash-valor" id="kpiTotalVendas">—</div>
+                    <div class="small" id="kpiTotalVendasVar"></div>
+                    <div class="small text-muted" id="kpiQtdVendas"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card shadow-sm h-100 dash-kpi dash-kpi-pedidos">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small text-uppercase fw-semibold">Pedidos</span>
+                        <i class="bi bi-receipt fs-4" aria-hidden="true"></i>
+                    </div>
+                    <div class="fs-3 fw-bold dash-valor" id="kpiPedidos">—</div>
+                    <div class="small" id="kpiPedidosVar"></div>
+                    <div class="small text-muted" id="kpiAndamento"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card shadow-sm h-100 dash-kpi dash-kpi-ticket">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small text-uppercase fw-semibold">Ticket médio</span>
+                        <i class="bi bi-graph-up-arrow fs-4" aria-hidden="true"></i>
+                    </div>
+                    <div class="fs-3 fw-bold dash-valor" id="kpiTicket">—</div>
+                    <div class="small" id="kpiTicketVar"></div>
+                    <div class="small text-muted">Total de vendas ÷ pedidos finalizados</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card shadow-sm h-100 dash-kpi dash-kpi-cancelados">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small text-uppercase fw-semibold">Cancelados</span>
+                        <i class="bi bi-x-octagon fs-4" aria-hidden="true"></i>
+                    </div>
+                    <div class="fs-3 fw-bold dash-valor" id="kpiCancelados">—</div>
+                    <div class="small" id="kpiTaxaCancelamento"></div>
+                    <div class="small text-muted" id="kpiValorCancelado"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RF02 -->
+    <div class="row g-3 mb-3">
+        <section class="col-12 col-lg-8" aria-labelledby="tituloEvolucao">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h3 class="h6 mb-0 fw-semibold" id="tituloEvolucao">Evolução das vendas</h3>
+                    <span class="small text-muted" id="evolucaoLegenda"></span>
+                </div>
+                <div class="card-body dash-bloco" id="blocoEvolucao">
+                    <div class="dash-grafico">
+                        <canvas id="graficoEvolucao" role="img" aria-label="Gráfico de evolução das vendas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="col-12 col-lg-4" aria-labelledby="tituloDistribuicao">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0 fw-semibold" id="tituloDistribuicao">Distribuição dos pedidos por status</h3>
+                </div>
+                <div class="card-body dash-bloco" id="blocoDistribuicao">
+                    <div class="dash-grafico">
+                        <canvas id="graficoDistribuicao" role="img"
+                                aria-label="Gráfico da distribuição dos pedidos por status"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <section class="col-12 col-lg-7" aria-labelledby="tituloPedidosPeriodo">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0 fw-semibold" id="tituloPedidosPeriodo">Quantidade de pedidos por período</h3>
+                </div>
+                <div class="card-body dash-bloco" id="blocoPedidosPeriodo">
+                    <div class="dash-grafico">
+                        <canvas id="graficoPedidos" role="img" aria-label="Gráfico de pedidos por período"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RF03 -->
+        <section class="col-12 col-lg-5" aria-labelledby="tituloSituacao">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h3 class="h6 mb-0 fw-semibold" id="tituloSituacao">Situação dos pedidos</h3>
+                    <span class="badge bg-light text-dark border" id="situacaoTotal"></span>
+                </div>
+                <div class="card-body dash-bloco" id="blocoSituacao">
+                    <ul class="list-unstyled mb-0" id="listaSituacao"></ul>
+                    <div class="small text-muted mt-2" id="situacaoNaoClassificados"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- RF04 -->
+    <section class="card shadow-sm" aria-labelledby="tituloRanking">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h3 class="h6 mb-0 fw-semibold" id="tituloRanking">
+                <i class="bi bi-trophy me-1 dash-acento" aria-hidden="true"></i>Produtos mais vendidos
+            </h3>
+            <div class="d-flex align-items-center gap-2">
+                <label for="dashLimite" class="small text-muted mb-0">Exibir</label>
+                <select id="dashLimite" class="form-select form-select-sm w-auto">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="20">Top 20</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body dash-bloco p-0" id="blocoRanking">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="px-3 small">Somente itens de pedidos finalizados, com o preço registrado em
+                        cada venda. Valor líquido = valor bruto com o desconto do pedido rateado.</caption>
+                    <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="text-center">#</th>
+                        <th scope="col">Produto</th>
+                        <th scope="col" class="text-end">Qtd. vendida</th>
+                        <th scope="col" class="text-end d-none d-md-table-cell">Valor bruto</th>
+                        <th scope="col" class="text-end">Valor gerado</th>
+                        <th scope="col" class="d-none d-sm-table-cell dash-col-participacao">Participação</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabelaRanking"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script th:src="@{/plugins/chart.js/Chart.min.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</div>
+
+</body>
+</html>

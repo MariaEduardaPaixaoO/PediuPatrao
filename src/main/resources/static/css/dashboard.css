@@ -1,0 +1,108 @@
+.dashboard {
+    --dash-acento: #c0392b;
+    --dash-vendas: #198754;
+    --dash-pedidos: #0d6efd;
+    --dash-ticket: #e67e22;
+    --dash-cancelados: #dc3545;
+}
+
+/* sem isso os gráficos estouram a largura no celular (body é flex no layout) */
+main.container-fluid {
+    min-width: 0;
+}
+
+.dash-acento {
+    color: var(--dash-acento);
+}
+
+.dash-kpi {
+    border: 0;
+    border-left: 4px solid transparent;
+}
+
+.dash-kpi .bi { opacity: .75; }
+.dash-kpi-vendas { border-left-color: var(--dash-vendas); }
+.dash-kpi-vendas .bi { color: var(--dash-vendas); }
+.dash-kpi-pedidos { border-left-color: var(--dash-pedidos); }
+.dash-kpi-pedidos .bi { color: var(--dash-pedidos); }
+.dash-kpi-ticket { border-left-color: var(--dash-ticket); }
+.dash-kpi-ticket .bi { color: var(--dash-ticket); }
+.dash-kpi-cancelados { border-left-color: var(--dash-cancelados); }
+.dash-kpi-cancelados .bi { color: var(--dash-cancelados); }
+
+.dash-valor {
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    margin: .25rem 0;
+}
+
+.dash-grafico {
+    position: relative;
+    height: 300px;
+}
+
+.dash-bloco {
+    position: relative;
+    min-height: 120px;
+}
+
+.dash-carregando::after {
+    content: "Carregando…";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .75);
+    color: #495057;
+    font-size: .875rem;
+    z-index: 2;
+}
+
+.dash-aviso {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    background: #fff;
+    color: #6c757d;
+    font-size: .9rem;
+    z-index: 1;
+}
+
+.dash-aviso .bi { font-size: 1.75rem; margin-bottom: .25rem; }
+.dash-aviso.dash-aviso-erro { color: #b02a37; }
+
+.dash-ponto {
+    display: inline-block;
+    width: .7rem;
+    height: .7rem;
+    border-radius: 50%;
+    margin-right: .4rem;
+    vertical-align: baseline;
+}
+
+.dash-status-item + .dash-status-item { margin-top: .6rem; }
+.dash-status-barra { height: 6px; }
+
+.dash-col-participacao { min-width: 140px; }
+
+.btn-group [aria-pressed="true"] {
+    background-color: #343a40;
+    border-color: #343a40;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    /* espaço para o botão do menu */
+    .dashboard { padding-top: 2.5rem; }
+    .dash-grafico { height: 240px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard * { transition: none !important; animation: none !important; }
+}

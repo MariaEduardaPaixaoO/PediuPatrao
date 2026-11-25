@@ -45,11 +45,25 @@ Depois é só abrir http://localhost:8080 e entrar com o admin definido no `.env
 ./mvnw test
 ```
 
-São 97 testes e não precisam de Mongo (usam repositórios simulados com Mockito e `@WebMvcTest`). Rodei na minha máquina com Java 21 e todos passaram. Eles cobrem login dos três perfis, 401 e 403 por perfil, desconto e cancelamento bloqueados para ADMIN e ATENDENTE, auditoria bloqueada para ATENDENTE, autoelevação de perfil, cálculo do pedido, limite de 20%, transições válidas e inválidas, entrada e saída, cancelamento com justificativa e bloqueio depois da saída, pedido cancelado imutável, persistência da auditoria e valores antes/depois nas alterações de cliente.
+São 143 testes (97 da parte anterior e 46 do dashboard) e não precisam de Mongo (usam repositórios simulados com Mockito e `@WebMvcTest`). Rodei na minha máquina com Java 21 e todos passaram. Eles cobrem login dos três perfis, 401 e 403 por perfil, desconto e cancelamento bloqueados para ADMIN e ATENDENTE, auditoria bloqueada para ATENDENTE, autoelevação de perfil, cálculo do pedido, limite de 20%, transições válidas e inválidas, entrada e saída, cancelamento com justificativa e bloqueio depois da saída, pedido cancelado imutável, persistência da auditoria e valores antes/depois nas alterações de cliente.
 
 Um aviso para quem ler o log: aparecem uns `ERROR ... Falha ao persistir auditoria` com stack trace durante os testes. É esperado, o teste simula o banco caindo para conferir que a operação é desfeita.
 
 Além dos testes, dá para verificar na prática as restrições do backend chamando a API com cada usuário (login com cookie e token CSRF) e conferindo os códigos 403. Foi isso que mostrei no vídeo.
+
+## Dashboard Administrativo
+
+Painel para o ADMIN e o GERENTE acompanharem as vendas e os pedidos, no item **Dashboard** do menu (`/dashboard`). Mostra total de vendas, ticket médio, cancelados, gráficos de vendas e de status, a situação dos pedidos e os produtos mais vendidos, com filtro por período. Os dados vêm de uma API REST nova, em `/api/dashboard`.
+
+Só conta como venda o pedido finalizado; os cancelados ficam de fora do faturamento.
+
+A documentação completa (requisitos, endpoints, testes e decisões) está em [`docs/dashboard.md`](docs/dashboard.md).
+
+Para testar a API com a aplicação rodando:
+
+```
+./testes-dashboard-api.sh gerente01 'SENHA'
+```
 
 ## Perfis
 
@@ -57,6 +71,7 @@ Além dos testes, dá para verificar na prática as restrições do backend cham
 |---|:-:|:-:|:-:|
 | Administrar usuários e perfis | sim | não | não |
 | Consultar auditoria | sim | sim | não |
+| Ver o dashboard administrativo | sim | sim | não |
 | Consultar pedidos | sim | sim | sim |
 | Registrar e editar pedidos | não | sim | sim |
 | Mudar status e registrar saída | não | sim | sim |
